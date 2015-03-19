@@ -1,0 +1,6 @@
+parameters:
+#    wanaplay_booker.example.class: Wanaplay\Bundle\BookerBundle\Example
+
+services:
+    wanaplay_booker.service:
+        class: Wanaplay\Bundle\BookerBundle\Services\BookerService

@@ -1,0 +1,3 @@
+wanaplay_booker_homepage:
+    pattern:  /book
+    defaults: { _controller: WanaplayBookerBundle:Default:book }

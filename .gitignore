@@ -1,0 +1,15 @@
+# Also ignore symlinks
+/app/cache
+/app/logs
+/vendor/
+# - IDE specific files
+# Eclipse
+/.project
+/.settings/
+/.buildpath
+
+# Netbeans
+/nbproject
+
+# phpStorm
+/.idea

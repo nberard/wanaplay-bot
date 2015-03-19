@@ -1,0 +1,3 @@
+wanaplay_booker:
+    resource: "@WanaplayBookerBundle/Resources/config/routing.yml"
+    prefix:   /wanaplay
