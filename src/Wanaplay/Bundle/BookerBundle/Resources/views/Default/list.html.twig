@@ -1,0 +1,6 @@
+Horraires dispos :
+<ul>
+{% for horaire in horaires %}
+    <li>le {{ horaire.date }} à {{ horaire.time }}</li>
+{% endfor %}
+</ul>

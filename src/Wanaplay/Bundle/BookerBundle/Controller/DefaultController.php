@@ -10,6 +10,8 @@ class DefaultController extends Controller
 {
 //    const TIME_BOOKING = '17:40';
     const TIME_BOOKING = '21:40';
+//    private $destinataires = array('berard.nicolas@gmail.com');
+    private $destinataires = array('berard.nicolas@gmail.com', 'chandler8692@gmail.com');
 //    const TIME_BOOKING = '23:00';
 
     /**
@@ -25,16 +27,38 @@ class DefaultController extends Controller
         try {
             $sToday = $this->getService()->book(self::TIME_BOOKING);
             $oMessage = \Swift_Message::newInstance()
-                                      ->setSubject('Booking Wanaplay')
-                                      ->setFrom('report@my.server')
-                                      ->setTo(array('berard.nicolas@gmail.com', 'chandler8692@gmail.com'))
-                                      ->setBody('Réservation pour le '.$sToday.' à '.self::TIME_BOOKING,
-                                                'text/html');
+                ->setSubject('Booking Wanaplay')
+                ->setFrom('report@my.server')
+                ->setTo($this->destinataires)
+                ->setBody(
+                    'Réservation pour le ' . $sToday . ' à ' . self::TIME_BOOKING,
+                    'text/html'
+                );
             $sReturn = $this->get('mailer')->send($oMessage) ? 'ok mail' : 'ko mail';
-        }
-        catch(NoBookingException $oNoBookingException) {
+        } catch (NoBookingException $oNoBookingException) {
             $sReturn = 'ko booking';
         }
+
+        return new Response($sReturn);
+    }
+
+    public function listAction()
+    {
+        $aAllSlots = $this->getService()->listAll(self::TIME_BOOKING);
+        if (!empty($aAllSlots)) {
+            $html = $this->render('WanaplayBookerBundle:Default:list.html.twig', array('horaires' => $aAllSlots));
+            $oMessage = \Swift_Message::newInstance()
+                ->setSubject('Booking Wanaplay')
+                ->setFrom('report@my.server')
+//                ->setTo(array('berard.nicolas@gmail.com'))
+                ->setTo($this->destinataires)
+                ->setBody($html->getContent(), 'text/html');
+            $sReturn = $this->get('mailer')->send($oMessage) ? 'ok mail' : 'ko mail';
+            $sReturn .= ' : ' . count($aAllSlots) . ' slots';
+        } else {
+            $sReturn = 'no slots';
+        }
+
         return new Response($sReturn);
     }
 }

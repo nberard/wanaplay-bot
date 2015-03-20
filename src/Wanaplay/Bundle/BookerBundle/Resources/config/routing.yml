@@ -1,3 +1,6 @@
-wanaplay_booker_homepage:
+wanaplay_booker_book:
     pattern:  /book
     defaults: { _controller: WanaplayBookerBundle:Default:book }
+wanaplay_booker_list:
+    pattern:  /list
+    defaults: { _controller: WanaplayBookerBundle:Default:list }
