@@ -15,6 +15,8 @@ class BookerService
 {
     const BASE_URL = 'http://fr.wanaplay.com';
 
+    const TOLERANCE = 0;
+
     /**
      * @var Client
      */
@@ -48,34 +50,38 @@ class BookerService
      */
     public function setLogger(LoggerInterface $logger)
     {
-        error_log("set logger");
         $this->logger = $logger;
     }
 
     public function listAll($sTimeBooking)
     {
-        $this->logger->debug('test');
+        $logger = $this->logger;
+        $logger->info('listing all empty slots for ' . $sTimeBooking);
         $dToday = new DateTime();
         $aAllSlots = array();
         for ($iNbJours = 0; $iNbJours <= 14; $iNbJours++) {
-            $sTargetDate = $dToday->modify(sprintf('+%d day', $iNbJours))->format('Y-m-d');
+            $sTargetDate = $dToday->modify(sprintf('+%d day', 1))->format('Y-m-d');
+            $logger->debug('doing target date ' . $sTargetDate);
             $response = $this->client->post('reservation/planning2', array(), array('date' => $sTargetDate))->send();
             $crawler = new Crawler($response->getBody(true));
             $dMomentTarget = \DateTime::createFromFormat('H:i', $sTimeBooking);
             $aSlots = $crawler->filter('td.creneauLibre')->reduce(
-                function (Crawler $node, $i) use ($dMomentTarget) {
+                function (Crawler $node, $i) use ($dMomentTarget, $logger) {
                     $dDate = \DateTime::createFromFormat('H:i', $node->text());
                     $iDiffMinutes = ($dDate->getTimestamp() - $dMomentTarget->getTimestamp()) / 60;
+//                    $logger->debug('diff is ' . $iDiffMinutes . ' mins');
 //                    return $iDiffMinutes >= 0 && $iDiffMinutes >= 40;
-                    return $iDiffMinutes == 0;
+                    return abs($iDiffMinutes) <= self::TOLERANCE;
                 }
             );
+            $logger->info(sprintf('found %d slots', $aSlots->count()));
             if ($aSlots->count() > 0) {
                 $aTimes = $aSlots->each(
                     function (Crawler $node, $i) {
                         return $node->children()->text();
                     }
                 );
+                $logger->debug(sprintf('adding times %s for date %s', $sTargetDate, $aTimes));
                 $aAllSlots[] = array('date' => $sTargetDate, 'time' => implode(', ', array_unique($aTimes)));
             }
         }
@@ -85,8 +91,17 @@ class BookerService
 
     public function book($sTimeBooking)
     {
+        $logger = $this->logger;
         $dToday = new DateTime();
+        $logger->info(
+            sprintf(
+                'checking book for time: %s ; starting at %s (local time)',
+                $sTimeBooking,
+                $dToday->format('d/m/Y H:i:s')
+            )
+        );
         $sTargetDate = $dToday->modify(sprintf('+%d day', 14))->format('Y-m-d');
+        $logger->debug('target date is: ' . $sTargetDate);
         $response = $this->client->post('reservation/planning2', array(), array('date' => $sTargetDate))->send();
         $crawler = new Crawler($response->getBody(true));
         $aSlots = $crawler->filter('.timeSlotTime')->reduce(
@@ -95,8 +110,9 @@ class BookerService
             }
         );
         $aIds = $aSlots->each(
-            function (Crawler $node, $i) {
+            function (Crawler $node, $i) use ($logger) {
                 $sOnClick = $node->parents()->getNode(0)->getAttribute('onclick');
+                $logger->info('onclick attribute: ' . var_export($sOnClick, true));
                 if (!empty($sOnClick)) {
                     list($sPrefix, $iIdBooking) = explode('idTspl=', $sOnClick);
 
@@ -104,6 +120,7 @@ class BookerService
                 }
             }
         );
+        $logger->debug('found ids: ' . var_export($aIds, true));
         $aValidIds = array_filter($aIds);
         foreach ($aValidIds as $iId) {
             $aParams = array(
@@ -119,7 +136,11 @@ class BookerService
             );
             $responseBooking = $this->client->post('reservation/takeReservationBase', array(), $aParams)->send();
             if ($responseBooking->getStatusCode() == 200) {
+                $logger->info('booked successfully: ' . $sTargetDate . ' at date ' . $sTargetDate);
+
                 return $sTargetDate;
+            } else {
+                $logger->info('booked failed: ' . $sTargetDate . ' at date ' . $sTargetDate);
             }
         }
         throw new NoBookingException();

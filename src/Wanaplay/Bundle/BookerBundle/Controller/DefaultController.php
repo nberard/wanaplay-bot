@@ -8,11 +8,9 @@ use Wanaplay\Bundle\BookerBundle\Exception\NoBookingException;
 
 class DefaultController extends Controller
 {
-//    const TIME_BOOKING = '17:40';
     const TIME_BOOKING = '21:40';
 //    private $destinataires = array('berard.nicolas@gmail.com');
     private $destinataires = array('berard.nicolas@gmail.com', 'chandler8692@gmail.com');
-//    const TIME_BOOKING = '23:00';
 
     /**
      * @return \Wanaplay\Bundle\BookerBundle\Services\BookerService
@@ -25,6 +23,7 @@ class DefaultController extends Controller
     public function bookAction()
     {
         try {
+//            $sToday = $this->getService()->book('20:20');
             $sToday = $this->getService()->book(self::TIME_BOOKING);
             $oMessage = \Swift_Message::newInstance()
                 ->setSubject('Booking Wanaplay')
