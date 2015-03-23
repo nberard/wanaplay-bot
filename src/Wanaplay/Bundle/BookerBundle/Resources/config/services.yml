@@ -4,3 +4,7 @@ parameters:
 services:
     wanaplay_booker.service:
         class: Wanaplay\Bundle\BookerBundle\Services\BookerService
+        calls:
+            - [ setLogger, [ @logger ]]
+        tags:
+            - { name: monolog.logger, channel: wanaplay_bot }

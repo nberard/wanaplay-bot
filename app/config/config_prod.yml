@@ -21,3 +21,7 @@ monolog:
             type:  stream
             path:  "%kernel.logs_dir%/%kernel.environment%.log"
             level: debug
+        wanaplay_bot:
+            type:     stream
+            path:     "%kernel.logs_dir%/wanaplay_bot.log"
+            channels: wanaplay_bot

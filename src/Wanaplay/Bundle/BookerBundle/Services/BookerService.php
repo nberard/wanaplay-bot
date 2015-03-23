@@ -4,6 +4,7 @@ namespace Wanaplay\Bundle\BookerBundle\Services;
 
 
 use Guzzle\Http\Client;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\DomCrawler\Crawler;
 use \DateTime;
 use Guzzle\Plugin\Cookie\CookiePlugin;
@@ -18,6 +19,11 @@ class BookerService
      * @var Client
      */
     private $client;
+
+    /**
+     * @var LoggerInterface
+     */
+    private $logger;
 
     public function __construct()
     {
@@ -37,8 +43,18 @@ class BookerService
         )->send();
     }
 
+    /**
+     * @param LoggerInterface $logger
+     */
+    public function setLogger(LoggerInterface $logger)
+    {
+        error_log("set logger");
+        $this->logger = $logger;
+    }
+
     public function listAll($sTimeBooking)
     {
+        $this->logger->debug('test');
         $dToday = new DateTime();
         $aAllSlots = array();
         for ($iNbJours = 0; $iNbJours <= 14; $iNbJours++) {
