@@ -8,6 +8,8 @@ use Wanaplay\Bundle\BookerBundle\Exception\NoBookingException;
 
 class DefaultController extends Controller
 {
+    const EMAIL_FROM = 'berard.nicolas@gmail.com';
+//    const TIME_BOOKING = '17:00';
     const TIME_BOOKING = '21:40';
 //    private $destinataires = array('berard.nicolas@gmail.com');
     private $destinataires = array('berard.nicolas@gmail.com', 'chandler8692@gmail.com');
@@ -24,10 +26,11 @@ class DefaultController extends Controller
     {
         try {
 //            $sToday = $this->getService()->book('20:20');
+//            $sToday = 'test';
             $sToday = $this->getService()->book(self::TIME_BOOKING);
             $oMessage = \Swift_Message::newInstance()
                 ->setSubject('Booking Wanaplay')
-                ->setFrom('report@my.server')
+                ->setFrom(self::EMAIL_FROM)
                 ->setTo($this->destinataires)
                 ->setBody(
                     'Réservation pour le ' . $sToday . ' à ' . self::TIME_BOOKING,
@@ -48,8 +51,7 @@ class DefaultController extends Controller
             $html = $this->render('WanaplayBookerBundle:Default:list.html.twig', array('horaires' => $aAllSlots));
             $oMessage = \Swift_Message::newInstance()
                 ->setSubject('Booking Wanaplay')
-                ->setFrom('report@my.server')
-//                ->setTo(array('berard.nicolas@gmail.com'))
+                ->setFrom(self::EMAIL_FROM)
                 ->setTo($this->destinataires)
                 ->setBody($html->getContent(), 'text/html');
             $sReturn = $this->get('mailer')->send($oMessage) ? 'ok mail' : 'ko mail';

@@ -136,11 +136,11 @@ class BookerService
             );
             $responseBooking = $this->client->post('reservation/takeReservationBase', array(), $aParams)->send();
             if ($responseBooking->getStatusCode() == 200) {
-                $logger->info('booked successfully: ' . $sTargetDate . ' at date ' . $sTargetDate);
+                $logger->info('booked successfully: ' . $sTimeBooking . ' at date ' . $sTargetDate);
 
                 return $sTargetDate;
             } else {
-                $logger->info('booked failed: ' . $sTargetDate . ' at date ' . $sTargetDate);
+                $logger->info('booked failed: ' . $sTimeBooking . ' at date ' . $sTargetDate);
             }
         }
         throw new NoBookingException();
