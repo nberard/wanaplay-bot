@@ -22,6 +22,16 @@ class BookerService
      */
     private $client;
 
+    private $excludedDays = array(
+//        'Mon',
+//        'Tue',
+//        'Wed',
+//        'Thu',
+        'Fri',
+//        'Sat',
+//        'Sun',
+    );
+
     /**
      * @var LoggerInterface
      */
@@ -60,7 +70,12 @@ class BookerService
         $dToday = new DateTime();
         $aAllSlots = array();
         for ($iNbJours = 0; $iNbJours <= 14; $iNbJours++) {
-            $sTargetDate = $dToday->modify(sprintf('+%d day', 1))->format('Y-m-d');
+            $dTargetDate = $dToday->modify(sprintf('+%d day', 1));
+            $sDayOfWeek = date('D', $dTargetDate->getTimestamp());
+            if (in_array($sDayOfWeek, $this->excludedDays)) {
+                continue;
+            }
+            $sTargetDate = $dTargetDate->format('Y-m-d');
             $logger->debug('doing target date ' . $sTargetDate);
             $response = $this->client->post('reservation/planning2', array(), array('date' => $sTargetDate))->send();
             $crawler = new Crawler($response->getBody(true));
