@@ -9,12 +9,13 @@ use Symfony\Component\DomCrawler\Crawler;
 use \DateTime;
 use Guzzle\Plugin\Cookie\CookiePlugin;
 use Guzzle\Plugin\Cookie\CookieJar\ArrayCookieJar;
+use Wanaplay\Bundle\BookerBundle\Entities\BookingDestinataire;
+use Wanaplay\Bundle\BookerBundle\Entities\BookingResponse;
 use Wanaplay\Bundle\BookerBundle\Exception\NoBookingException;
 
 class BookerService
 {
     const BASE_URL = 'http://fr.wanaplay.com';
-
     const TOLERANCE = 0;
 
     /**
@@ -63,6 +64,10 @@ class BookerService
         $this->logger = $logger;
     }
 
+    /**
+     * @param $sTimeBooking
+     * @return array
+     */
     public function listAll($sTimeBooking)
     {
         $logger = $this->logger;
@@ -104,6 +109,11 @@ class BookerService
         return $aAllSlots;
     }
 
+    /**
+     * @param $sTimeBooking
+     * @return BookingResponse
+     * @throws NoBookingException
+     */
     public function book($sTimeBooking)
     {
         $logger = $this->logger;
@@ -150,12 +160,13 @@ class BookerService
                 'commit' => 'Confirmer',
             );
             $responseBooking = $this->client->post('reservation/takeReservationBase', array(), $aParams)->send();
+            $targetDate = \DateTime::createFromFormat('Y-m-d H:i', $sTargetDate . ' ' . $sTimeBooking);
             if ($responseBooking->getStatusCode() == 200) {
-                $logger->info('booked successfully: ' . $sTimeBooking . ' at date ' . $sTargetDate);
-
-                return $sTargetDate;
+                $logger->info('booked successfully at: ' . $targetDate->format('Y-m-d H:i'));
+                $responseBooking = new BookingResponse($targetDate);
+                return $responseBooking;
             } else {
-                $logger->info('booked failed: ' . $sTimeBooking . ' at date ' . $sTargetDate);
+                $logger->info('booked failed at: ' . $targetDate->format('Y-m-d H:i'));
             }
         }
         throw new NoBookingException();
