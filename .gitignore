@@ -1,7 +1,10 @@
 # Also ignore symlinks
-/app/cache
+app/bootstrap.php.cache
+app/cache/
+app/logs/
+app/check.php
+app/SymfonyRequirements.php
 app/config/parameters.yml
-/app/logs
 /vendor/
 # - IDE specific files
 # Eclipse
