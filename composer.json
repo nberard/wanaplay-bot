@@ -5,15 +5,13 @@
         "psr-0": { "": "src/" }
     },
     "require": {
-        "php": ">=5.3.3",
-        "symfony/symfony": "*",
-        "twig/extensions": "~1.0",
+        "php": ">=5.4.4",
+        "symfony/symfony": "^2.8",
         "symfony/swiftmailer-bundle": "~2.3",
         "symfony/monolog-bundle": "~2.4",
         "incenteev/composer-parameter-handler": "~2.0",
+        "sensio/distribution-bundle": "~2.3",
         "symfony/dom-crawler": "*",
-        "mailchimp/mailchimp": "*",
-        "ext-curl": "*",
         "guzzle/guzzle": "3.8.1"
     },
     "scripts": {
@@ -38,9 +36,6 @@
         "symfony-web-dir": "web",
         "incenteev-parameters": {
             "file": "app/config/parameters.yml"
-        },
-        "branch-alias": {
-            "dev-master": "2.4-dev"
         }
     }
 }
