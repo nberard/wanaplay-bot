@@ -1,0 +1,8 @@
+parameters:
+    locale: fr
+    #used for orange blocking port 25
+    mailer_port: 587
+    mailer_transport: gmail
+    mailer_host: ~
+    mailer_user: ~
+    mailer_password: ~
