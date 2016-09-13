@@ -4,6 +4,7 @@ namespace Wanaplay\Bundle\BookerBundle\Services;
 
 
 use Guzzle\Http\Client;
+use Guzzle\Http\Message\Response;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DomCrawler\Crawler;
 use \DateTime;
@@ -11,6 +12,7 @@ use Guzzle\Plugin\Cookie\CookiePlugin;
 use Guzzle\Plugin\Cookie\CookieJar\ArrayCookieJar;
 use Wanaplay\Bundle\BookerBundle\Entities\BookingResponse;
 use Wanaplay\Bundle\BookerBundle\Entities\UserInfos;
+use Wanaplay\Bundle\BookerBundle\Exception\AlreadyBookedException;
 use Wanaplay\Bundle\BookerBundle\Exception\AuthentFailedException;
 use Wanaplay\Bundle\BookerBundle\Exception\NoBookingException;
 
@@ -122,6 +124,15 @@ class BookerService
     }
 
     /**
+     * @param Response $response
+     */
+    private function crawlResponse(Response $response)
+    {
+        $this->crawler->clear();
+        $this->crawler->addHtmlContent($response->getBody(true));
+    }
+
+    /**
      * @param $sTimeBooking
      * @return array
      */
@@ -130,7 +141,7 @@ class BookerService
         $logger = $this->logger;
         $logger->debug('target date is: ' . $sTargetDate);
         $response = $this->client->post('reservation/planning2', array(), array('date' => $sTargetDate))->send();
-        $this->crawler->addHtmlContent($response->getBody(true));
+        $this->crawlResponse($response);
         $aSlots = $this->crawler->filter('.timeSlotTime')->reduce(
             function (Crawler $node, $i) use ($sTimeBooking) {
                 return $node->text() == $sTimeBooking;
@@ -148,15 +159,42 @@ class BookerService
             }
         );
         $logger->debug('found ids: ' . var_export($aIds, true));
-        return array_filter($aIds);
+        return array_values(array_filter($aIds));
     }
 
+    /**
+     * @param $reservationId
+     * @return UserInfos
+     */
     private function getUserInfosFromReservation($reservationId)
     {
         $response = $this->client->post('reservation/takeReservationShow?idTspl=' . $reservationId)->send();
-        $this->crawler->addHtmlContent($response->getBody(true));
+        $this->crawlResponse($response);
         $userInfos = $this->crawler->filter('select#users_0 option');
         return new UserInfos($userInfos->attr('value'), $userInfos->text());
+    }
+
+    /**
+     * @param $dTargetDate
+     * @param $sTimeBooking
+     * @throws AlreadyBookedException
+     */
+    private function checkAlreadyBooked(\DateTime $dTargetDate, $sTimeBooking)
+    {
+        $responseHome = $this->client->get('plannings/espacesportifpontoise')->send();
+        $this->crawlResponse($responseHome);
+        $alreadyBooked = $this->crawler->filter('#my_reservations tr:nth-child(2) a')->reduce(
+            function (Crawler $node, $i) use ($sTimeBooking, $dTargetDate) {
+                $sTargetDate = html_entity_decode(sprintf("%s&nbsp;%s", $dTargetDate->format('d/m/Y'), $sTimeBooking));
+                if(strpos($node->text(), $sTargetDate) === FALSE) {
+                    return false;
+                }
+                return $node;
+            }
+        );
+        if(count($alreadyBooked)) {
+            throw new AlreadyBookedException;
+        }
     }
 
     /**
@@ -168,7 +206,8 @@ class BookerService
     {
         $logger = $this->logger;
         $dToday = new DateTime();
-        $sTargetDate = $dToday->modify(sprintf('+%d day', 14))->format('Y-m-d');
+        $dTargetDate = $dToday->modify(sprintf('+%d day', 14));
+        $sTargetDate = $dTargetDate->format('Y-m-d');
         $logger->info(
             sprintf(
                 'checking book for time: %s ; starting at %s (local time)',
@@ -176,9 +215,10 @@ class BookerService
                 $dToday->format('d/m/Y H:i:s')
             )
         );
+        $this->checkAlreadyBooked($dTargetDate, $sTimeBooking);
         $aValidIds = $this->getAvailableReservations($sTimeBooking, $sTargetDate);
         if(empty($aValidIds)) {
-            throw new NoBookingException();
+            throw new NoBookingException;
         }
         $validId = $aValidIds[0];
         $userInfosEntity = $this->getUserInfosFromReservation($validId);
@@ -205,6 +245,6 @@ class BookerService
             $responseBooking = new BookingResponse($targetDate);
             return $responseBooking;
         }
-        throw new NoBookingException();
+        throw new NoBookingException;
     }
 } 
