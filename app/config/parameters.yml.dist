@@ -6,3 +6,6 @@ parameters:
     mailer_host: ~
     mailer_user: ~
     mailer_password: ~
+
+    wanaplay_settings_username: ~
+    wanaplay_settings_password: ~

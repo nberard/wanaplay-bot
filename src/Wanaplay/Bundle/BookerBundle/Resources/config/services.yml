@@ -2,6 +2,9 @@ parameters:
 services:
     wanaplay_booker.service:
         class: Wanaplay\Bundle\BookerBundle\Services\BookerService
+        arguments:
+            - %wanaplay_settings_username%
+            - %wanaplay_settings_password%
         calls:
             - [ setLogger, [ @logger ]]
         tags:

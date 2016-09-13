@@ -2,7 +2,7 @@
 
 namespace Wanaplay\Bundle\BookerBundle\Exception;
 
-class NoBookingException extends \Exception
+class AuthentFailedException extends \Exception
 {
 
 }
