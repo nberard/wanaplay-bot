@@ -7,5 +7,7 @@ parameters:
     mailer_user: ~
     mailer_password: ~
 
+    mailing_list: []
+
     wanaplay_settings_username: ~
     wanaplay_settings_password: ~
