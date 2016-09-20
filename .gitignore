@@ -5,7 +5,9 @@ app/logs/
 app/check.php
 app/SymfonyRequirements.php
 app/config/parameters.yml
-/vendor/
+vendor
+bin
+.env
 # - IDE specific files
 # Eclipse
 /.project

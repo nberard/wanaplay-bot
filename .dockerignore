@@ -1,0 +1,4 @@
+app/config/parameters.yml
+app/cache/*
+app/logs/*
+.env
