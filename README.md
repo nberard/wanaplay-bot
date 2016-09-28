@@ -35,7 +35,7 @@ Add the following line to your crontab:
 
 #### From public image
 
-TODO
+docker run -d --env-file=.env touplitoui/wanaplay-bot:latest
 
 #### Build and run your image
 
